@@ -126,25 +126,8 @@ payment-alerts/
 │       ├── pages/
 │       └── types/
 ├── prisma/            # Schema e migrações do BD
-├── docker-compose.yml # Orquestração Docker
-└── AGENTS.md         # Documentação para agentes de IA
+└── docker-compose.yml # Orquestração Docker
 ```
-
-## Documentação para Desenvolvedores
-
-Este projeto inclui arquivos `AGENTS.md` com instruções específicas para agentes de IA. Esses arquivos contêm:
-
-- Visão geral de cada módulo
-- Estrutura de arquivos
-- Convenções de código
-- Comandos úteis
-- Variáveis de ambiente
-
-Os arquivos estão localizados em:
-- `/AGENTS.md` - Visão geral do projeto
-- `/api/AGENTS.md` - Específico da API
-- `/web/AGENTS.md` - Específico do Frontend
-- `/prisma/AGENTS.md` - Específico do Banco de Dados
 
 ## Funcionalidades Entregues
 
