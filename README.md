@@ -10,13 +10,17 @@ A plataforma permite cadastrar contas, definir datas de vencimento, acompanhar p
 
 O sistema possui uma lógica inteligente de calendário que considera finais de semana e feriados, antecipando notificações para o último dia útil disponível quando necessário.
 
+## Objetivo
+
+O Payment Alerts foi criado para simplificar o gerenciamento de contas a pagar, ajudando usuários a manterem seus compromissos financeiros em dia através de notificações automatizadas e regras inteligentes de calendário.
+
 ## Funcionalidades
 
 * Cadastro de contas a pagar
 * Controle de vencimentos
 * Registro de valores
 * Categorias personalizadas
-* Contas recorrentes
+* Contas recorrentes (mensais, semanais, anuais)
 * Dashboard financeiro
 * Histórico de pagamentos
 * Notificações por WhatsApp
@@ -27,21 +31,8 @@ O sistema possui uma lógica inteligente de calendário que considera finais de 
 * Integração com calendário de feriados
 * Histórico de notificações enviadas
 * Controle de contas pagas e pendentes
-
-## Como funciona
-
-Ao cadastrar uma conta, o usuário informa:
-
-* Nome da conta
-* Valor
-* Data de vencimento
-* Categoria
-* Recorrência
-* Canal de notificação
-
-O sistema executa verificações diárias para identificar pagamentos próximos do vencimento e envia alertas conforme as configurações definidas pelo usuário.
-
-Quando uma data de vencimento coincide com um final de semana ou feriado, os lembretes são antecipados automaticamente para o último dia útil anterior.
+* Exclusão em cascata de contas recorrentes
+* Remoção automática de instâncias futuras ao desativar recorrência
 
 ## Tecnologias
 
@@ -68,6 +59,101 @@ Quando uma data de vencimento coincide com um final de semana ou feriado, os lem
 * Docker
 * Docker Compose
 
-## Objetivo
+## Como Executar
 
-O Payment Alerts foi criado para simplificar o gerenciamento de contas a pagar, ajudando usuários a manterem seus compromissos financeiros em dia através de notificações automatizadas e regras inteligentes de calendário.
+### Usando Docker (Recomendado)
+
+```bash
+# Copie as variáveis de ambiente
+cp .env.example .env
+
+# Suba os containers
+docker compose up --build
+```
+
+O container da API executa as migrations e o seed automaticamente na inicialização.
+
+### Usando NPM (Desenvolvimento local)
+
+```bash
+# 1. Instale as dependências
+npm install
+
+# 2. Configure o banco de dados
+# Certifique-se de ter PostgreSQL rodando localmente
+# Edite o arquivo .env com a URL do seu banco
+
+# 3. Execute as migrações do Prisma
+cd prisma && npx prisma migrate dev
+
+# 4. (Opcional) Execute o seed
+npx ts-node seed.ts
+
+# 5. Inicie a API
+cd api && npm run start:dev
+
+# 6. Em outro terminal, inicie o frontend
+cd web && npm run dev
+```
+
+## Acesso aos Serviços
+
+| Serviço | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| API | http://localhost:3000 |
+| Swagger (Documentação) | http://localhost:3000/api/docs |
+| Prisma Studio | `cd prisma && npx prisma studio` |
+
+## Credenciais de Demonstração
+
+* E-mail: `admin@contas.local`
+* Senha: `admin123`
+
+## Estrutura do Projeto
+
+```
+payment-alerts/
+├── api/               # Backend NestJS
+│   └── src/
+│       ├── modules/   # Módulos (bills, users, notifications, etc.)
+│       ├── infra/    # Serviços de infraestrutura
+│       └── shared/   # Utilitários
+├── web/               # Frontend React
+│   └── src/
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/
+│       └── types/
+├── prisma/            # Schema e migrações do BD
+├── docker-compose.yml # Orquestração Docker
+└── AGENTS.md         # Documentação para agentes de IA
+```
+
+## Documentação para Desenvolvedores
+
+Este projeto inclui arquivos `AGENTS.md` com instruções específicas para agentes de IA. Esses arquivos contêm:
+
+- Visão geral de cada módulo
+- Estrutura de arquivos
+- Convenções de código
+- Comandos úteis
+- Variáveis de ambiente
+
+Os arquivos estão localizados em:
+- `/AGENTS.md` - Visão geral do projeto
+- `/api/AGENTS.md` - Específico da API
+- `/web/AGENTS.md` - Específico do Frontend
+- `/prisma/AGENTS.md` - Específico do Banco de Dados
+
+## Funcionalidades Entregues
+
+* Login e cadastro
+* Dashboard com período filtrável
+* Cadastro, edição, listagem e remoção de contas
+* Exclusão em cascata de contas recorrentes
+* Remoção automática de instâncias futuras ao desativar recorrência
+* Configurações de canais e dias antes do alerta
+* Histórico de notificações
+* Cron diário para geração e envio de notificações
+* Regras de dias úteis e feriados nacionais

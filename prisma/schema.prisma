@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String    @id @default(cuid())
+  name                 String
+  email                String    @unique
+  passwordHash         String
+  role                 UserRole  @default(USER)
+  permissions          Json      @default("[]")
+  notificationChannels Json      @default("[]")
+  reminderDays         Json      @default("[7,3,1,0]")
+  apiToken             String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  categories           Category[]
+  bills                Bill[]
+  notifications        Notification[]
+  notificationHistory  NotificationHistory[]
+  holidays             Holiday[]
+
+  @@index([email])
+  @@index([apiToken])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String   @default("#0ea5e9")
+  isDefault Boolean  @default(false)
+  bills     Bill[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Bill {
+  id                       String              @id @default(cuid())
+  userId                   String
+  user                     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId               String?
+  category                 Category?           @relation(fields: [categoryId], references: [id])
+  name                     String
+  description              String?
+  amount                   Decimal             @db.Decimal(12, 2)
+  dueDate                  DateTime
+  status                   BillStatus          @default(PENDING)
+  isRecurring              Boolean             @default(false)
+  recurrenceFrequency     RecurrenceFrequency?
+  recurrenceDayOfMonth     Int?
+  recurrenceDayOfWeek     Int?
+  recurrenceDay           Int?
+  recurrenceMonth         Int?
+  recurrenceSeriesId      String?
+  lastPaidAt              DateTime?
+  adjustedDueDate         DateTime?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  notifications            Notification[]
+
+  @@index([userId, dueDate])
+  @@index([userId, status])
+}
+
+model Notification {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billId        String
+  bill          Bill               @relation(fields: [billId], references: [id], onDelete: Cascade)
+  channel       NotificationChannel
+  title         String
+  message       String
+  scheduledFor  DateTime
+  status        NotificationStatus @default(PENDING)
+  sentAt        DateTime?
+  errorMessage  String?
+  provider      String?
+  providerId    String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  histories     NotificationHistory[]
+
+  @@index([userId, scheduledFor, status])
+  @@index([billId, channel])
+}
+
+model NotificationHistory {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationId String
+  notification   Notification      @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  channel        NotificationChannel
+  status         NotificationStatus
+  provider       String?
+  providerId     String?
+  errorMessage   String?
+  payload        Json?
+  sentAt         DateTime          @default(now())
+
+  @@index([userId, sentAt])
+  @@index([status, channel])
+}
+
+model Holiday {
+  id        String       @id @default(cuid())
+  userId    String?
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime     @unique
+  name      String
+  scope     HolidayScope @default(NATIONAL)
+  stateCode String?
+  city      String?
+  source    String
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([date, name, scope])
+  @@index([date, scope])
+  @@index([userId, date])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  SYSTEM
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum HolidayScope {
+  NATIONAL
+  STATE
+  MUNICIPAL
+}
